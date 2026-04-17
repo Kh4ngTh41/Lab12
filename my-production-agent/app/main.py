@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 import redis
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, Header, JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, Header
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from .config import settings
@@ -73,9 +74,7 @@ def get_token(request: TokenRequest):
 @app.post("/ask")
 def ask(
     request: AskRequest,
-    user_id: str = Depends(verify_api_key),
-    _rate_limit: None = Depends(lambda: check_rate_limit(request.user_id)),
-    _budget: None = Depends(lambda: check_budget(request.user_id))
+    _user_id: str = Depends(verify_api_key),
 ):
     """
     Main endpoint: Ask question to AI agent.
@@ -87,11 +86,19 @@ def ask(
     - Save to Redis
     - Return response
     """
-    if user_id != request.user_id:
+    # Extract user_id from request body
+    user_id = request.user_id
+
+    # Verify user_id matches API key
+    if _user_id != user_id:
         raise HTTPException(status_code=403, detail="User ID mismatch")
 
+    # Check rate limit and budget
+    check_rate_limit(user_id)
+    check_budget(user_id)
+
     # 1. Get conversation history từ Redis
-    history_key = f"history:{request.user_id}"
+    history_key = f"history:{user_id}"
     history = json.loads(r.get(history_key) or "[]")
 
     # 2. Build messages và gọi LLM
@@ -103,9 +110,9 @@ def ask(
     history.append({"role": "assistant", "content": response})
     r.setex(history_key, 7 * 24 * 3600, json.dumps(history))
 
-    logger.info(f"User {request.user_id} asked: {request.question[:50]}...")
+    logger.info(f"User {user_id} asked: {request.question[:50]}...")
 
-    return {"answer": response, "user_id": request.user_id}
+    return {"answer": response, "user_id": user_id}
 
 
 def call_llm(messages: list) -> str:
