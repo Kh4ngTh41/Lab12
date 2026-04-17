@@ -72,9 +72,12 @@ From analyzing `app.py` in the develop folder, I found these anti-patterns:
 
 *(To be filled after deployment)*
 
-- **URL**: `https://your-app.railway.app`
-- **Platform**: Railway
-- **Test Result**: [Paste actual test output]
+- **URL**: `https://my-agent-7xva.onrender.com`
+- **Platform**: Render
+- **Test Result**:
+  - Health check: ✅ Working
+  - API with auth: ✅ Working
+  - Rate limit: ✅ Working (429 after 20 requests)
 
 ### Exercise 3.2: Render vs Railway Comparison
 
@@ -215,4 +218,4 @@ After killing one instance and making a request, the conversation history is pre
 | Graceful shutdown | ✅ | SIGTERM handler |
 | Stateless design | ✅ | Redis storage |
 | JSON logging | ✅ | Python logging |
-| Deploy Railway/Render | ⏳ | Pending deployment |
+| Deploy Railway/Render | ✅ | https://my-agent-7xva.onrender.com |

@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
 
 r = redis.from_url(settings.REDIS_URL)
 
+# OpenAI client
+openai_client = None
+if settings.OPENAI_API_KEY:
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 class AskRequest(BaseModel):
     question: str
@@ -117,9 +123,21 @@ def ask(
 
 def call_llm(messages: list) -> str:
     """
-    Mock LLM - trả về canned responses.
-    Thay bằng OpenAI/Claude thật khi cần.
+    Gọi OpenAI API nếu có API key.
+    Fallback về mock responses nếu không có.
     """
+    if openai_client:
+        try:
+            response = openai_client.chat.completions.create(
+                model=settings.LLM_MODEL,
+                messages=messages
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error: {e}")
+            return f"Sorry, I encountered an error: {str(e)}"
+
+    # Fallback: mock response
     last_msg = messages[-1]["content"].lower()
 
     if "hello" in last_msg or "hi" in last_msg:
@@ -135,7 +153,7 @@ def call_llm(messages: list) -> str:
     elif "cache" in last_msg or "redis" in last_msg:
         return "Redis is an in-memory data structure store used as a database, cache, and message broker."
 
-    return f"You asked: '{messages[-1]['content']}'. This is a mock AI response. In production, this would call OpenAI or Claude."
+    return f"You asked: '{messages[-1]['content']}'. This is a mock AI response."
 
 
 @app.post("/shutdown")

@@ -2,29 +2,27 @@
 
 ## Public URL
 
-*(To be filled after deployment to Railway/Render)*
-
 ```
-https://your-agent.railway.app
+https://my-agent-7xva.onrender.com
 ```
 
 ## Platform
 
-Railway / Render / GCP Cloud Run
+Render
 
 ## Test Commands
 
 ### Health Check
 
 ```bash
-curl https://your-agent.railway.app/health
+curl https://my-agent-7xva.onrender.com/health
 # Expected: {"status":"ok"}
 ```
 
 ### API Test (without authentication - should return 401)
 
 ```bash
-curl https://your-agent.railway.app/ask -X POST \
+curl https://my-agent-7xva.onrender.com/ask -X POST \
   -H "Content-Type: application/json" \
   -d '{"user_id":"test","question":"Hello"}'
 # Expected: 401 Unauthorized
@@ -33,7 +31,7 @@ curl https://your-agent.railway.app/ask -X POST \
 ### API Test (with authentication)
 
 ```bash
-curl -X POST https://your-agent.railway.app/ask \
+curl -X POST https://my-agent-7xva.onrender.com/ask \
   -H "X-API-Key: user1-secret-key" \
   -H "Content-Type: application/json" \
   -d '{"user_id":"user_001","question":"Hello"}'
@@ -45,7 +43,7 @@ curl -X POST https://your-agent.railway.app/ask \
 ```bash
 for i in {1..22}; do
   curl -s -H "X-API-Key: user1-secret-key" \
-    https://your-agent.railway.app/ask -X POST \
+    https://my-agent-7xva.onrender.com/ask -X POST \
     -H "Content-Type: application/json" \
     -d '{"user_id":"test","question":"test '$i'"}'
 done
